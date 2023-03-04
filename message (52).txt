@@ -1,0 +1,1747 @@
+local lplr = game.Players.LocalPlayer
+local camera = game:GetService("Workspace").CurrentCamera
+local CurrentCamera = workspace.CurrentCamera
+local worldToViewportPoint = CurrentCamera.worldToViewportPoint
+local mouse = game.Players.LocalPlayer:GetMouse()
+local UserInput = game:GetService("UserInputService")
+
+
+
+_G.FakeAnim1 = game.Players.LocalPlayer.Character.Animate.idle.Animation1.AnimationId
+_G.FakeAnim2 = game.Players.LocalPlayer.Character.Animate.run.RunAnim.AnimationId
+_G.FakeAnim3 = game.Players.LocalPlayer.Character.Animate.walk.WalkAnim.AnimationId
+
+
+getgenv().taffy_esp = {
+    box = {
+        enabled1 = true,
+        enabled = false,
+        outline = false,
+        healthbar = false,
+        color1 = Color3.fromRGB(255, 255, 255),
+        color2 = Color3.fromRGB(0, 0, 0),
+        healthbarcolor = Color3.fromRGB(4, 0, 255)
+    },
+    tracer = {
+        enabled = false,
+        unlocktracers = false,
+        color = Color3.fromRGB(255, 255, 255)
+    },
+    name = {
+        enabled = false,
+        outline = true,
+        size = 13,
+        font = 2,
+        color = Color3.fromRGB(255, 255, 255)
+    },
+    misc = {
+        teamcheck = false,
+        useteamcolors = false,
+        visibleonly = true
+    },
+    Toolsshow = {
+        enable = false,
+        outline = false,
+        size = 8,
+        font = 3,
+        color = Color3.fromRGB(147, 39, 161)
+    }
+}
+
+function esp(v)
+    -- box --
+    local BLOCKOUTLINE = Drawing.new("Square")
+    BLOCKOUTLINE.Visible = false
+    BLOCKOUTLINE.Color = Color3.new(0,0,0)
+    BLOCKOUTLINE.Thickness = 3
+    BLOCKOUTLINE.Transparency = 1
+    BLOCKOUTLINE.Filled = false
+
+    local BOXPLAYER = Drawing.new("Square")
+    BOXPLAYER.Visible = false
+    BOXPLAYER.Color = taffy_esp.box.color1
+    BOXPLAYER.Thickness = 1
+    BOXPLAYER.Transparency = 1
+    BOXPLAYER.Filled = false
+
+    local HealthBarOUTLINE = Drawing.new("Square")
+    HealthBarOUTLINE.Thickness = 3
+    HealthBarOUTLINE.Filled = false
+    HealthBarOUTLINE.Color = Color3.new(0,0,0)
+    HealthBarOUTLINE.Transparency = 1
+    HealthBarOUTLINE.Visible = false
+
+    local HealthBarITSELF = Drawing.new("Square")
+    HealthBarITSELF.Thickness = 1
+    HealthBarITSELF.Filled = false
+    HealthBarITSELF.Transparency = 1
+    HealthBarITSELF.Visible = false
+    
+    local Tracer = Drawing.new("Line")
+    Tracer.Visible = false
+    Tracer.Color = Color3.new(1,1,1)
+    Tracer.Thickness = 1
+    Tracer.Transparency = 1
+
+    local Name = Drawing.new("Text")
+    Name.Transparency = 1
+    Name.Visible = false
+    Name.Color = taffy_esp.name.color
+    Name.Size = 16
+    Name.Center = true
+    Name.Outline = true
+    Name.Font = 2
+    Name.Text = "name"
+
+    local toolshow = Drawing.new("Text")
+    toolshow.Transparency = 1
+    toolshow.Visible = false
+    toolshow.Color = getgenv().taffy_esp.Toolsshow.color
+    toolshow.Size = 16
+    toolshow.Center = true
+    toolshow.Outline = false
+    toolshow.Font = 2
+    toolshow.Text = ""
+game:GetService("RunService").RenderStepped:Connect(function()
+        if v.Character ~= nil and v.Character:FindFirstChild("Humanoid") ~= nil and v.Character:FindFirstChild("HumanoidRootPart") ~= nil and v ~= lplr and v.Character.Humanoid.Health  > 0 and (not taffy_esp.misc.teamcheck or v.TeamColor == lplr.TeamColor) then
+            local Vector, onScreen = camera:worldToViewportPoint(v.Character.HumanoidRootPart.Position)
+            local Distance = (CurrentCamera.CFrame.p - v.Character.HumanoidRootPart.Position).Magnitude
+            local RootPart = v.Character.HumanoidRootPart
+            local Head = v.Character.Head
+            local RootPosition, RootVis = worldToViewportPoint(CurrentCamera, RootPart.Position)
+            local HeadPosition = worldToViewportPoint(CurrentCamera, Head.Position + Vector3.new(0,0.5,0))
+            local LegPosition = worldToViewportPoint(CurrentCamera, RootPart.Position - Vector3.new(0,3,0))
+            if (not taffy_esp.misc.visibleonly or onScreen) then
+                if taffy_esp.box.enabled1 then
+                    BLOCKOUTLINE.Size = Vector2.new(2500 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+                    BLOCKOUTLINE.Position = Vector2.new(RootPosition.X - BLOCKOUTLINE.Size.X / 2, RootPosition.Y - BLOCKOUTLINE.Size.Y / 2)
+                    BLOCKOUTLINE.Visible = taffy_esp.box.outline
+                    BLOCKOUTLINE.Color = taffy_esp.box.color2
+    
+                    BOXPLAYER.Size = Vector2.new(2500 / RootPosition.Z, HeadPosition.Y - LegPosition.Y)
+                    BOXPLAYER.Position = Vector2.new(RootPosition.X - BOXPLAYER.Size.X / 2, RootPosition.Y - BOXPLAYER.Size.Y / 2)
+                    BOXPLAYER.Visible = taffy_esp.box.enabled
+                    if not taffy_esp.misc.useteamcolors then
+                        local color = v.TeamColor
+                        BOXPLAYER.Color = taffy_esp.box.color1
+                    else
+                        BOXPLAYER.Color = taffy_esp.box.color1
+                    end
+                        
+                    HealthBarOUTLINE.Size = Vector2.new(2, HeadPosition.Y - LegPosition.Y)
+                    HealthBarOUTLINE.Position = HealthBarOUTLINE.Position - Vector2.new(6,0)
+                    HealthBarOUTLINE.Visible = taffy_esp.box.outline
+    
+                    HealthBarITSELF.Size = Vector2.new(2, (HeadPosition.Y - LegPosition.Y) / (v.Character.Humanoid.MaxHealth / math.clamp(v.Character.Humanoid.Health, 0,v.Character.Humanoid.MaxHealth)))
+                    HealthBarITSELF.Position = Vector2.new(BOXPLAYER.Position.X - 5, BOXPLAYER.Position.Y + (1 / HealthBarITSELF.Size.Y))
+                    HealthBarITSELF.Color = taffy_esp.box.healthbarcolor
+                    HealthBarITSELF.Visible = taffy_esp.box.healthbar
+                    
+                    
+                    
+                    
+                else
+                    BLOCKOUTLINE.Visible = false
+                    BOXPLAYER.Visible = false
+                    HealthBarOUTLINE.Visible = false
+                    HealthBarITSELF.Visible = false
+                end
+                if taffy_esp.tracer.enabled then
+                    if taffy_esp.tracer.unlocktracers then
+                        Tracer.From = Vector2.new(mouse.X, mouse.Y + 36)
+                    else
+                        Tracer.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 1)
+                    end
+                    Tracer.To = Vector2.new(Vector.X, Vector.Y)
+                    Tracer.Visible = taffy_esp.tracer.enabled
+                    if not taffy_esp.misc.useteamcolors then
+                        local color = v.TeamColor
+                        Tracer.Color = taffy_esp.tracer.color
+                    else
+                        Tracer.Color = taffy_esp.tracer.color
+                    end
+                else
+                    Tracer.Visible = false
+                end
+
+                if taffy_esp.Toolsshow.enable then
+                      local Equipped = v.Character:FindFirstChildOfClass("Tool") and v.Character:FindFirstChildOfClass("Tool").Name or "None"
+                    toolshow.Text = Equipped
+                    toolshow.Position = Vector2.new(workspace.Camera:WorldToViewportPoint(v.Character.Head.Position).X, workspace.Camera:WorldToViewportPoint(v.Character.Head.Position).Y + 30)
+                    toolshow.Color = getgenv().taffy_esp.Toolsshow.color
+                    toolshow.Font = 3
+                    Name.Size = taffy_esp.Toolsshow.size
+                    toolshow.Visible = true
+                    else
+                        toolshow.Visible = false
+                end
+
+
+                if taffy_esp.name.enabled then
+                    Name.Text = tostring(v.Character.Humanoid.DisplayName)
+                    Name.Position = Vector2.new(workspace.Camera:WorldToViewportPoint(v.Character.Head.Position).X, workspace.Camera:WorldToViewportPoint(v.Character.Head.Position).Y - 30)
+                    Name.Visible = true
+                    Name.Size = taffy_esp.name.size
+                    if not taffy_esp.misc.useteamcolors then
+                        local color = v.TeamColor
+                        Name.Color = taffy_esp.name.color
+                    else
+                        Name.Color = taffy_esp.name.color
+                    end
+                    Name.Outline = taffy_esp.name.outline
+                else
+                    Name.Visible = false
+                end
+            else
+                BLOCKOUTLINE.Visible = false
+                BOXPLAYER.Visible = false
+                toolshow.Visible=false
+                HealthBarOUTLINE.Visible = false
+                HealthBarITSELF.Visible = false
+                Tracer.Visible = false
+                Name.Visible = false
+            end
+        else
+            toolshow.Visible=false
+            BLOCKOUTLINE.Visible = false
+            BOXPLAYER.Visible = false
+            HealthBarOUTLINE.Visible = false
+            HealthBarITSELF.Visible = false
+            Tracer.Visible = false
+            Name.Visible = false
+        end
+    end)
+end
+
+for i,v in pairs(game.Players:GetChildren()) do
+    esp(v)
+end
+
+game.Players.PlayerAdded:Connect(function(v)
+    esp(v)
+end)
+
+
+local azure = {
+    UISettings = {
+        Rainbow = nil
+    },
+    Aiming = {
+        Aimbot = {
+            Enabled = nil,
+            Prediction = nil,
+            Hitbox = nil,
+            Smoothing = {
+                Enabled = nil,
+                Value = nil
+            },
+            VelocityResolver = nil,
+            ReverseResolver = nil,
+            Alerts = nil
+        },
+        Target = {
+            Enabled = nil,
+            Prediction = nil,
+            Hitbox = nil,
+            Alerts = nil,
+            Tracer = {
+                Enabled = nil,
+                Color = nil,
+                From = nil,
+            },
+            PingBased = nil,
+            Highlight = {
+                Enabled = nil,
+                FillColor = nil,
+                OutlineColor = nil
+            },
+            LookAt = nil,
+            ViewAt = nil,
+            FakeHitbox = {
+                Enabled = nil,
+                Color = nil,
+                Size = nil,
+                Material = nil
+            },
+            Offset = {
+                Y = nil
+            },
+            Dot = {
+                Enabled = nil,Color = nil
+            }
+        },
+        WristPos = {
+            Enabled = nil,
+            Distance = nil
+        },
+        TargetStrafe = {
+            Enabled = nil,
+            Speed = nil,
+            Distance = nil,
+            Height = nil,
+            Visualize = {
+                Enabled = nil,
+                Color = nil
+            }
+        }
+    },
+    Blatant = {
+        CFrame = {
+            Enabled = nil,
+            Value = nil
+        },
+        Exploits = {
+            AutoStomp = nil,
+            AntiBag = nil,
+            NoSlow = nil,
+            JumpCooldown = nil
+        },
+        AntiStomp = {
+            Enabled = nil,
+            Type = nil
+        },
+        FakeLag = {
+            Enabled = nil,
+            Duration = nil
+        },
+        AntiAim = {
+            SemiLegit = nil,
+            VelocityUnderGround = nil,
+            VelocityUnderGroundAmount = nil,
+            RotVelocity = {
+                Enabled = nil,Value = nil
+            }
+        },
+        GunMod = {
+            AutoReload = nil
+        },
+        ToolReach = nil
+    },
+    Visuals = {
+        Local = {
+            Chams = nil,
+            Highlight = {
+                Enabled = nil,
+                FillColor = nil,
+                OutlineColor = nil,
+            },
+            CloneChams = {
+                Enabled = nil,
+                Duration = nil,
+                Color = nil,
+                Material = nil
+            }
+        },
+    }
+}
+   
+
+local LocalPlayer = game.Players.LocalPlayer
+
+local LocalPlayerObjs = {
+    Mouse = LocalPlayer:GetMouse()
+}
+
+local RunService = game:GetService("RunService")
+
+
+getgenv().MagnetsNotifications = false
+getgenv().AimbotNotifications = false
+getgenv().WalkspeedNotifications = false
+getgenv().HipHeightNotifications = false
+
+local repo = 'https://raw.githubusercontent.com/wally-rblx/LinoriaLib/main/'
+
+local Library = loadstring(game:HttpGet(repo .. 'Library.lua'))()
+local ThemeManager = loadstring(game:HttpGet(repo .. 'addons/ThemeManager.lua'))()
+local SaveManager = loadstring(game:HttpGet(repo .. 'addons/SaveManager.lua'))()
+
+local Window = Library:CreateWindow({
+
+
+    Title = 'LuckyHub | Hoopz',
+    Center = true, 
+    AutoShow = true,
+})
+
+local Tabs = {
+
+    Main = Window:AddTab('Main'),
+    Extra = Window:AddTab('Extra'), 
+    ['UI Settings'] = Window:AddTab('UI Settings'),
+}
+
+
+local LeftGroupBox = Tabs.Main:AddLeftGroupbox('Aimbot')
+local PlayerTabxd = Tabs.Main:AddLeftGroupbox('Hip Height')
+local OtherTabXd = Tabs.Main:AddLeftGroupbox('Other')
+local MagnetsTab = Tabs.Main:AddRightGroupbox('Reach')
+local WalkspeedTab = Tabs.Main:AddRightGroupbox('Walkspeed')
+local JumpPowerTab = Tabs.Main:AddRightGroupbox('Jump Power')
+local MainVisuals = Tabs.Extra:AddLeftGroupbox('ESP')
+local CharVisuals = Tabs.Extra:AddLeftGroupbox('Character Visuals')
+local OtherTab = Tabs.Extra:AddLeftGroupbox('Other')
+local WorldVisuals = Tabs.Extra:AddRightGroupbox('World Visuals')
+
+
+
+
+-- Tabboxes are a tiny bit different, but here's a basic example:
+--[[
+
+local TabBox = Tabs.Main:AddLeftTabbox() -- Add Tabbox on left side
+
+local Tab1 = TabBox:AddTab('Tab 1')
+local Tab2 = TabBox:AddTab('Tab 2')
+
+-- You can now call AddToggle, etc on the tabs you added to the Tabbox
+]]
+
+-- Groupbox:AddToggle
+-- Arguments: Index, Options
+LeftGroupBox:AddToggle('MyToggle', {
+    Text = 'Enabled',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'This enables or disables the aimbot', -- Information shown when you hover over the toggle
+}):AddKeyPicker('AimbotToggle', {
+    Default = 'None', 
+    SyncToggleState = true, 
+
+    Mode = 'Toggle',
+
+    Text = 'Aimbot Toggle', 
+    NoUI = false,
+})
+
+Toggles.MyToggle:OnChanged(function(lololol)
+    _G.Aimbot=lololol
+    if lololol == true and getgenv().AimbotNotifications then
+        Library:Notify('Aimbot has been enabled')
+    elseif lololol == false and getgenv().AimbotNotifications then
+        Library:Notify('Aimbot has been disabled')
+    end
+end)
+
+Options.AimbotToggle:OnClick(function(v)
+    if lololol == true then
+        lololol = false
+    if lololol == false then
+        lololol = true
+    end
+end
+end)
+
+PlayerTabxd:AddToggle('Hipheighttoggle', {
+    Text = 'Enabled',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'This enables or disables the aimbot', -- Information shown when you hover over the toggle
+}):AddKeyPicker('Heipheigiht', {
+    Default = 'None', 
+    SyncToggleState = true, 
+
+    Mode = 'Toggle',
+
+    Text = 'Aimbot Toggle', 
+    NoUI = false,
+})
+
+Toggles.Hipheighttoggle:OnChanged(function(eeee)
+    coolerthanu = eeee
+    if coolerthanu == true and getgenv().HipHeightNotifications then
+        Library:Notify('Hip Height has been enabled')
+    elseif coolerthanu == false and getgenv().HipHeightNotifications then
+        Library:Notify('Hip Height has been disabled')
+    end
+if coolerthanu == true then 
+    game.Players.LocalPlayer.Character.Humanoid.HipHeight = Options.slideireirere.Value
+elseif coolerthanu == false then
+    game.Players.LocalPlayer.Character.Humanoid.HipHeight = 0
+end
+end)
+
+Options.Heipheigiht:OnClick(function(v)
+    if coolerthanu == true then
+        coolerthanu = false
+    if coolerthanu == false then
+        coolerthanu = true
+    end
+end
+end)
+
+
+PlayerTabxd:AddSlider('slideireirere', {
+    Text = 'Hip Height',
+
+    Default = 0,
+    Min = 0,
+    Max = 20,
+    Rounding = 1,
+
+    Compact = false,
+})
+
+Options.slideireirere:OnChanged(function()
+    game.Players.LocalPlayer.Character.Humanoid.HipHeight = Options.slideireirere.Value
+end)
+
+
+MagnetsTab:AddToggle('MagnetsEnable', {
+    Text = 'Enabled',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'This enables or disables the magnets', -- Information shown when you hover over the toggle
+}):AddKeyPicker('MagnetsKeybind', {
+    Default = 'None', 
+    SyncToggleState = true, 
+
+    Mode = 'Toggle',
+
+    Text = 'Magnets Toggle', 
+    NoUI = false,
+})
+
+Toggles.MagnetsEnable:OnChanged(function(daddy)
+    _G.Reach=daddy
+    if daddy == true and getgenv().MagnetsNotifications then
+        Library:Notify('Reach has been enabled')
+    elseif daddy == false and getgenv().MagnetsNotifications then
+        Library:Notify('Reach has been disabled')
+    end
+end)
+
+Options.MagnetsKeybind:OnClick(function()
+    if daddy == true then
+        daddy = false
+    if daddy == false then
+        daddy = true
+    end
+end
+end)
+
+JumpPowerTab:AddToggle('JumPowerEnable', {
+    Text = 'Enabled',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'This enables or disables jump power', -- Information shown when you hover over the toggle
+}):AddKeyPicker('JumpPowerKeybind', {
+    Default = 'None', 
+    SyncToggleState = true, 
+
+    Mode = 'Toggle',
+
+    Text = 'Jump Power Toggle', 
+    NoUI = false,
+})
+
+Toggles.JumPowerEnable:OnChanged(function(v)
+    coolman2 = v
+if coolman2 == true then 
+    game:GetService("Players").LocalPlayer.Character.Humanoid.JumpPower = Options.JumpPowerSlider.Value
+elseif coolman2 == false then
+    game:GetService("Players").LocalPlayer.Character.Humanoid.JumpPower = 50
+end
+end)
+
+Options.JumpPowerKeybind:OnClick(function(v)
+    if coolman2 == true then
+        coolman2 = false
+    if coolman2 == false then
+        coolman2 = true
+    end
+end
+end)
+
+JumpPowerTab:AddSlider('JumpPowerSlider', {
+    Text = 'Jump Power',
+
+    Default = 50,
+    Min = 50,
+    Max = 100,
+    Rounding = 1,
+
+    Compact = false,
+})
+
+Options.JumpPowerSlider:OnChanged(function()
+    game:GetService("Players").LocalPlayer.Character.Humanoid.JumpPower = Options.JumpPowerSlider.Value
+end)
+
+JumpPowerTab:AddToggle('JumpPowerLegit', {
+    Text = 'Legit Mode',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'This enables or disables legit mode', -- Information shown when you hover over the toggle
+})
+
+Toggles.JumpPowerLegit:OnChanged(function(v)
+    if v == true then
+        game:GetService("Players").LocalPlayer.Character.Humanoid.JumpPower = 54
+    elseif v == false then
+        game:GetService("Players").LocalPlayer.Character.Humanoid.JumpPower = 50
+    end
+end)
+
+WalkspeedTab:AddToggle('WalkspeedEnable', {
+    Text = 'Enabled',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'This enables or disables the walkspeed', -- Information shown when you hover over the toggle
+}):AddKeyPicker('WalkspeedKeybind', {
+    Default = 'None', 
+    SyncToggleState = true, 
+
+    Mode = 'Toggle',
+
+    Text = 'Walkspeed Toggle', 
+    NoUI = false,
+})
+
+Toggles.WalkspeedEnable:OnChanged(function(v)
+    awesomesauce = v
+    if awesomesauce == true and getgenv().WalkspeedNotifications then
+        Library:Notify('Walkspeed has been enabled')
+    elseif awesomesauce == false and getgenv().WalkspeedNotifications then
+        Library:Notify('Walkspeed has been disabled')
+    end
+if awesomesauce == true then 
+    game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = Options.WalkspeedSlider.Value
+elseif awesomesauce == false then
+    game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = 16
+end
+end)
+
+Options.WalkspeedKeybind:OnClick(function(v)
+    if awesomesauce == true then
+        awesomesauce = false
+    if awesomesauce == false then
+        awesomesauce = true
+    end
+end
+end)
+
+local AntiCheatBypasss = OtherTabXd:AddButton('Anti Cheat Bypass', function()
+    local ac = {"Speeding", "Spinning Detect", "Jumping", "HipHeight", "Long Arms", "JumpPower"}
+
+    local old; old = hookmetamethod(game, "__namecall", function(self, ...)
+       local args = {...}
+       
+       if getnamecallmethod() == "FireServer" and self.Name == "sbEvent" then
+           if ac[args[1]] then
+               return
+           end
+       end
+       return old(self, ...)
+    end)
+end)
+
+local StreamerModeX = OtherTabXd:AddButton('Streamer Mode', function()
+    local name = game.Players.LocalPlayer.Name
+    local newName = 'HoopzLegend58821'
+    
+    local classes = {
+        TextLabel = true,
+        TextBox = true,
+        TextButton = true
+    }
+    
+    local function check(d) 
+        if ( classes[d.ClassName] ) then
+            local text = d.Text
+            if ( text:match(name) ) then 
+                d.Text = text:gsub(name, newName)
+            end
+            
+            d:GetPropertyChangedSignal('Text'):Connect(function() 
+                local text = d.Text
+                if ( text:match(name) ) then
+                    d.Text = text:gsub(name, newName)
+                end
+            end)
+        end
+    end
+    
+    for _, v in ipairs(game:GetDescendants()) do 
+        check(v)
+    end
+    game.DescendantAdded:Connect(check)
+end)
+
+WalkspeedTab:AddSlider('WalkspeedSlider', {
+    Text = 'Walkspeed',
+
+    Default = 16,
+    Min = 16,
+    Max = 19,
+    Rounding = 1,
+
+    Compact = false,
+})
+
+Options.WalkspeedSlider:OnChanged(function()
+    game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = Options.WalkspeedSlider.Value
+end)
+
+WalkspeedTab:AddToggle('WalkspeedLegit', {
+    Text = 'Legit Mode',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'This enables or disables legit mode', -- Information shown when you hover over the toggle
+})
+
+Toggles.WalkspeedLegit:OnChanged(function(v)
+    if v == true then
+        game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = 17
+    elseif v == false then
+        game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = 16
+    end
+end)
+
+WorldVisuals:AddToggle('RainbowAmbient', {
+    Text = 'Rainbow Ambient',
+    Default = false, 
+    Tooltip = 'Rainbow Ambient Enabled', 
+})
+
+Toggles.RainbowAmbient:OnChanged(function()
+    AmbientRainbowMode = Toggles.RainbowAmbient.Value
+    if Toggles.RainbowAmbient.Value then
+        while Toggles.RainbowAmbient.Value do
+            wait()
+            game:GetService("Lighting").Ambient  = Color3.new(255/255,0/255,0/255)
+            for i = 0,255,10 do
+             wait()
+             game:GetService("Lighting").Ambient = Color3.new(255/255,i/255,0/255)
+            end
+            for i = 255,0,-10 do
+                wait()
+                game:GetService("Lighting").Ambient = Color3.new(i/255,255/255,0/255)
+            end
+            for i = 0,255,10 do
+               wait()
+               game:GetService("Lighting").Ambient = Color3.new(0/255,255/255,i/255)
+            end
+            for i = 255,0,-10 do
+                wait()
+                game:GetService("Lighting").Ambient = Color3.new(0/255,i/255,255/255)
+            end
+            for i = 0,255,10 do
+                wait()
+                game:GetService("Lighting").Ambient = Color3.new(i/255,0/255,255/255)
+            end
+            for i = 255,0,-10 do
+                wait()
+                game:GetService("Lighting").Ambient = Color3.new(255/255,0/255,i/255)
+            end
+            if Toggles.RainbowAmbient.Value == false then break end
+        end
+    end
+end)
+
+local AmbientReset = WorldVisuals:AddButton('Reset to Default', function()
+    Options.AmbientColorPicker:SetValueRGB(Color3.fromRGB(0,0,0))
+end)
+
+WorldVisuals:AddLabel('Outdoor Ambient'):AddColorPicker('OutdoorAmbientColor', {
+    Default = Color3.fromRGB(135, 135, 135),
+    Title = 'Outdoor Ambient', 
+})
+
+Options.OutdoorAmbientColor:OnChanged(function()
+    if OutdoorAmbientRainbowMode then
+    else
+        game.Lighting.OutdoorAmbient = Options.OutdoorAmbientColor.Value
+    end
+end)
+
+WorldVisuals:AddToggle('RainbowOutdoorAmbient', {
+    Text = 'Rainbow Outdoor',
+    Default = false, 
+    Tooltip = 'Rainbow Outdoor Ambient Enabled', 
+})
+
+Toggles.RainbowOutdoorAmbient:OnChanged(function()
+    OutdoorAmbientRainbowMode = Toggles.RainbowOutdoorAmbient.Value
+    if Toggles.RainbowOutdoorAmbient.Value then
+        while Toggles.RainbowOutdoorAmbient.Value do
+            wait()
+            game:GetService("Lighting").OutdoorAmbient  = Color3.new(255/255,0/255,0/255)
+            for i = 0,255,10 do
+             wait()
+             game:GetService("Lighting").OutdoorAmbient = Color3.new(255/255,i/255,0/255)
+            end
+            for i = 255,0,-10 do
+                wait()
+                game:GetService("Lighting").OutdoorAmbient = Color3.new(i/255,255/255,0/255)
+            end
+            for i = 0,255,10 do
+               wait()
+               game:GetService("Lighting").OutdoorAmbient = Color3.new(0/255,255/255,i/255)
+            end
+            for i = 255,0,-10 do
+                wait()
+                game:GetService("Lighting").OutdoorAmbient = Color3.new(0/255,i/255,255/255)
+            end
+            for i = 0,255,10 do
+                wait()
+                game:GetService("Lighting").OutdoorAmbient = Color3.new(i/255,0/255,255/255)
+            end
+            for i = 255,0,-10 do
+                wait()
+                game:GetService("Lighting").OutdoorAmbient = Color3.new(255/255,0/255,i/255)
+            end
+            if Toggles.RainbowOutdoorAmbient.Value == false then break end
+        end
+    end
+end)
+
+local OutdoorAmbientReset = WorldVisuals:AddButton('Reset to Default', function()
+    Options.OutdoorAmbientColor:SetValueRGB(Color3.fromRGB(152, 152, 146))
+end)
+
+WorldVisuals:AddToggle('GlobalShadowsEnabled', {
+    Text = 'Global Shadows',
+    Default = true, 
+    Tooltip = 'Global Shadows Enabled', 
+})
+
+Toggles.GlobalShadowsEnabled:OnChanged(function()
+    game.Lighting.GlobalShadows = Toggles.GlobalShadowsEnabled.Value
+end)
+WorldVisuals:AddSlider('Saturation', {
+    Text = 'Saturation',
+
+    Default = 0,
+    Min = 0,
+    Max = 10,
+    Rounding = 1,
+
+    Compact = false,
+})
+
+Options.Saturation:OnChanged(function()
+                        local ColorCorrection = game.Lighting:FindFirstChildOfClass("ColorCorrectionEffect") or Instance.new("ColorCorrectionEffect")
+ColorCorrection.Saturation = Options.Saturation.Value
+end)
+WorldVisuals:AddSlider('Contrast', {
+    Text = 'Contrast',
+
+    Default = 0.1,
+    Min = 0,
+    Max = 10,
+    Rounding = 1,
+
+    Compact = false,
+})
+
+Options.Contrast:OnChanged(function()
+    local ColorCorrection = game.Lighting:FindFirstChildOfClass("ColorCorrectionEffect") or Instance.new("ColorCorrectionEffect")
+ColorCorrection.Contrast = Options.Contrast.Value
+end)
+
+CharVisuals:AddToggle('CloneChamsEnabled', {
+    Text = 'Clone Chams',
+    Default = false, 
+    Tooltip = 'Clone Chams Enabled', 
+})
+
+Toggles.CloneChamsEnabled:OnChanged(function()
+    azure.Visuals.Local.CloneChams.Enabled = Toggles.CloneChamsEnabled.Value
+end)
+
+Toggles.CloneChamsEnabled:AddColorPicker('CloneChamsColor', {
+    Default = Color3.fromRGB(255,255,255),
+    Title = 'Clone Chams Color'
+})
+
+Options.CloneChamsColor:OnChanged(function()
+    azure.Visuals.Local.CloneChams.Color = Options.CloneChamsColor.Value
+end)
+
+task.spawn(function ()
+    while true do
+        wait()
+        if azure.Visuals.Local.CloneChams.Enabled then
+            repeat
+                game.Players.LocalPlayer.Character.Archivable = true
+                local Clone = game.Players.LocalPlayer.Character:Clone()
+                for _,Obj in next, Clone:GetDescendants() do
+                if Obj.Name == "HumanoidRootPart" or Obj:IsA("Humanoid") or Obj:IsA("LocalScript") or Obj:IsA("Script") or Obj:IsA("Decal") then
+                    Obj:Destroy()
+                elseif Obj:IsA("BasePart") or Obj:IsA("Meshpart") or Obj:IsA("Part") then
+                    if Obj.Transparency == 1 then
+                    Obj:Destroy()
+                    else
+                    Obj.CanCollide = false
+                    Obj.Anchored = true
+                    Obj.Material = azure.Visuals.Local.CloneChams.Material
+                    Obj.Color = azure.Visuals.Local.CloneChams.Color
+                    Obj.Transparency = 0
+                    Obj.Size = Obj.Size + Vector3.new(0.03, 0.03, 0.03)   
+                end
+            end
+                pcall(function()
+                    Obj.CanCollide = false
+                end)
+            end
+            Clone.Parent = game.Workspace
+            wait(azure.Visuals.Local.CloneChams.Duration)
+            Clone:Destroy()  
+            until azure.Visuals.Local.CloneChams.Enabled == false
+        end
+    end
+end)
+
+CharVisuals:AddSlider('DurationSliderWHAT', {
+    Text = 'Duration',
+
+    Default = 0.1,
+    Min = 0.1,
+    Max = 3,
+    Rounding = 2,
+
+    Compact = false,
+})
+
+Options.DurationSliderWHAT:OnChanged(function()
+    azure.Visuals.Local.CloneChams.Duration = Options.DurationSliderWHAT.Value
+end)
+
+CharVisuals:AddDropdown('CloneChamsMaterial', {
+    Values = { 'Neon', 'ForceField', 'Plastic' },
+    Default = 2,
+    Multi = false, 
+
+    Text = 'Clone Chams Material',
+    Tooltip = 'Clone Chams Material',
+})
+
+Options.CloneChamsMaterial:OnChanged(function()
+    azure.Visuals.Local.CloneChams.Material = Options.CloneChamsMaterial.Value
+end)
+
+CharVisuals:AddToggle('LocalPlayerChamsToggle', {
+    Text = 'Local Player Chams',
+    Default = false,
+    Tooltip = 'Enable Chams',
+})
+
+Toggles.LocalPlayerChamsToggle:OnChanged(function(e)
+    if e then
+        for i, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.Material = Enum.Material.ForceField
+            end
+        end
+    else
+        for i, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.Material = Enum.Material.Plastic
+            end
+        end
+    end
+end)
+
+local FPSBOOST = OtherTab:AddButton('FPS Booster', function()
+    local decalsyeeted = true 
+    local g = game
+    local w = g.Workspace
+    local l = g.Lighting
+    local t = w.Terrain
+    t.WaterWaveSize = 0
+    t.WaterWaveSpeed = 0
+    t.WaterReflectance = 0
+    t.WaterTransparency = 0
+    l.GlobalShadows = false
+    l.FogEnd = 9e9
+    l.Brightness = 0
+    settings().Rendering.QualityLevel = "Level01"
+    for i, v in pairs(g:GetDescendants()) do
+        if v:IsA("Part") or v:IsA("Union") or v:IsA("CornerWedgePart") or v:IsA("TrussPart") then
+            v.Material = "Plastic"
+            v.Reflectance = 0
+        elseif v:IsA("Decal") or v:IsA("Texture") and decalsyeeted then
+            v.Transparency = 1
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Lifetime = NumberRange.new(0)
+        elseif v:IsA("Explosion") then
+            v.BlastPressure = 1
+            v.BlastRadius = 1
+        elseif v:IsA("Fire") or v:IsA("SpotLight") or v:IsA("Smoke") or v:IsA("Sparkles") then
+            v.Enabled = false
+        elseif v:IsA("MeshPart") then
+            v.Material = "Plastic"
+            v.Reflectance = 0
+            v.TextureID = 10385902758728957
+        end
+    end
+    for i, e in pairs(l:GetChildren()) do
+        if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+            e.Enabled = false
+        end
+    end
+end)
+
+local LowGFX = OtherTab:AddButton('Low GFX', function()
+    for _,v in pairs(workspace:GetDescendants()) do
+        if v.ClassName == "Part"
+        or v.ClassName == "SpawnLocation"
+        or v.ClassName == "WedgePart"
+        or v.ClassName == "Terrain"
+        or v.ClassName == "MeshPart" then
+        v.Material = "Plastic"
+        end
+        end
+end)
+
+local MemSpoofer = OtherTab:AddButton('Memory Spoofer', function()
+    getgenv().Settings = {
+        Spoofer = {
+                MemorySpoofer = true,
+                MemoryTabColor = Color3.fromRGB(211, 88, 33),
+                MemoryMost = 75000, -- 750
+                MemoryLeast = 67000, -- 700
+                
+          
+        },
+        }
+        
+        local PerformanceStats = game:GetService("CoreGui"):WaitForChild("RobloxGui"):WaitForChild("PerformanceStats")
+          
+          local MemLabel
+          local color,
+            color1,
+            color2,
+            color3,
+            color4,
+            color5,
+            color6,
+            color7,
+            color8,
+            color9,
+            color10,
+            color11,
+            color12,
+            color13,
+            color14,
+            color15,
+            color16,
+            color17,
+            color18,
+            color19
+          for I, Child in next, PerformanceStats:GetChildren() do
+            if Child.StatsMiniTextPanelClass.TitleLabel.Text == "Mem" then
+                MemLabel = Child.StatsMiniTextPanelClass.ValueLabel
+                color = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_0
+                color1 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_1
+                color2 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_2
+                color3 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_3
+                color4 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_4
+                color5 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_5
+                color6 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_6
+                color7 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_7
+                color8 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_8
+                color9 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_9
+                color10 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_10
+                color11 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_11
+                color12 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_12
+                color13 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_13
+                color14 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_14
+                color15 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_15
+                color16 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_16
+                color17 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_17
+                color18 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_18
+                color19 = Child.PS_AnnotatedGraph.PS_BarFrame.Bar_19
+                break
+            end
+          end
+          MemLabel:GetPropertyChangedSignal("Text"):Connect(
+            function()
+                if Settings.Spoofer.MemorySpoofer == true then
+                    MemLabel.Text = math.random(Settings.Spoofer.MemoryLeast, Settings.Spoofer.MemoryMost) / 100 .. " MB"
+                    color.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color1.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color2.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color3.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color4.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color5.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color6.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color7.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color8.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color9.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color10.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color11.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color12.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color13.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color14.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color15.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color16.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color17.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color18.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                    color19.BackgroundColor3 = Settings.Spoofer.MemoryTabColor
+                end
+        end)
+end)
+
+local FreeLimss = OtherTab:AddButton('Free Limiteds Script', function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/CoolKid52321/rasrxrzdrz/main/rezrzrze.txt'))()
+end)
+
+CharVisuals:AddToggle('HeadlessToggle', {
+    Text = 'Headless',
+    Default = false,
+    Tooltip = 'Enables or disables headless',
+})
+
+Toggles.HeadlessToggle:OnChanged(function(v)
+    if v == true then 
+        game.Players.LocalPlayer.Character.Head.Transparency = 1
+        game.Players.LocalPlayer.Character.Head.Transparency = 1
+        for i,v in pairs(game.Players.LocalPlayer.Character.Head:GetChildren()) do
+            if (v:IsA("Decal")) then
+                v.Transparency = 1
+            end 
+        end
+    else 
+        game.Players.LocalPlayer.Character.Head.Transparency = 0
+        game.Players.LocalPlayer.Character.Head.Transparency = 0
+        for i,v in pairs(game.Players.LocalPlayer.Character.Head:GetChildren()) do
+            if (v:IsA("Decal")) then
+                v.Transparency = 0
+            end 
+        end
+    end
+end)
+
+CharVisuals:AddDropdown('PlayerVisualsss', {
+    Values = { 'None', 'SSHF', 'Playful Vampire', 'Yum!', 'Blizzard Beastmode', 'Red Glowing Eyes', 'Green Glowing Eyes', 'Prankster', 'Red Tango' },
+    Default = 1,
+    Multi = false,
+
+    Text = 'Faces',
+    Tooltip = 'Changes your face',
+})
+
+Options.PlayerVisualsss:OnChanged(function(State)
+    if State == "SSHF" then
+        local L_409_ = game.Players.LocalPlayer.Character
+        local L_410_ = L_409_:WaitForChild("Head")
+        local L_411_ = L_410_:WaitForChild("face")
+        L_411_.Texture = "rbxassetid://494290547"
+    elseif State == "Playful Vampire" then
+        local L_415_ = game.Players.LocalPlayer.Character
+        local L_416_ = L_415_:WaitForChild("Head")
+        local L_417_ = L_416_:WaitForChild("face")
+        L_417_.Texture = "rbxassetid://2409281591"
+    elseif State == "Yum!" then
+        local L_415_ = game.Players.LocalPlayer.Character
+        local L_416_ = L_415_:WaitForChild("Head")
+        local L_417_ = L_416_:WaitForChild("face")
+        L_417_.Texture = "rbxassetid://26018945"
+    elseif State == "Blizzard Beastmode" then
+        local L_415_ = game.Players.LocalPlayer.Character
+        local L_416_ = L_415_:WaitForChild("Head")
+        local L_417_ = L_416_:WaitForChild("face")
+        L_417_.Texture = "rbxassetid://209712379"
+    elseif State == "Beastmode" then
+        local L_415_ = game.Players.LocalPlayer.Character
+        local L_416_ = L_415_:WaitForChild("Head")
+        local L_417_ = L_416_:WaitForChild("face")
+        L_417_.Texture = "rbxassetid://127959433"
+    elseif State == "Red Glowing Eyes" then
+        local L_415_ = game.Players.LocalPlayer.Character
+        local L_416_ = L_415_:WaitForChild("Head")
+        local L_417_ = L_416_:WaitForChild("face")
+        L_417_.Texture = "rbxassetid://179693472"
+    elseif State == "Green Glowing Eyes" then
+        local L_415_ = game.Players.LocalPlayer.Character
+        local L_416_ = L_415_:WaitForChild("Head")
+        local L_417_ = L_416_:WaitForChild("face")
+        L_417_.Texture = "rbxassetid://398676207"
+    elseif State == "Prankster" then
+        local L_415_ = game.Players.LocalPlayer.Character
+        local L_416_ = L_415_:WaitForChild("Head")
+        local L_417_ = L_416_:WaitForChild("face")
+        L_417_.Texture = "rbxassetid://20052028"
+    elseif State == "Red Tango" then
+        local L_415_ = game.Players.LocalPlayer.Character
+        local L_416_ = L_415_:WaitForChild("Head")
+        local L_417_ = L_416_:WaitForChild("face")
+        L_417_.Texture = "rbxassetid://629930519"
+    end
+end)
+
+
+local RainbowChracter = CharVisuals:AddButton('Rainbow Character', function()
+    for i, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+        if v:IsA("BasePart") then
+            v.Material = "ForceField"
+            spawn(function()
+                while wait() do
+                    for i, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                        if v:IsA("BasePart") then
+                            v.Color = Color3.fromHSV(tick()%5/5,1,1)
+                            wait()
+                        end
+                    end 
+                end
+            end)
+        end
+    end
+end)
+
+MainVisuals:AddToggle('BoxESPEnabled', {
+    Text = 'Box',
+    Default = false, 
+    Tooltip = 'Box ESP Enabled', 
+})
+
+Toggles.BoxESPEnabled:OnChanged(function()
+    getgenv().taffy_esp.box.enabled = Toggles.BoxESPEnabled.Value
+end)
+
+Toggles.BoxESPEnabled:AddColorPicker('BoxESPColor', {
+    Default = Color3.fromRGB(255,255,255),
+    Title = 'Box ESP Color'
+})
+
+Options.BoxESPColor:OnChanged(function()
+    getgenv().taffy_esp.box.color1 = Options.BoxESPColor.Value
+end)
+
+MainVisuals:AddToggle('TracerESPEnabled', {
+    Text = 'Tracer',
+    Default = false, 
+    Tooltip = 'Tracer ESP Enabled', 
+})
+
+Toggles.TracerESPEnabled:OnChanged(function()
+    getgenv().taffy_esp.tracer.enabled = Toggles.TracerESPEnabled.Value
+end)
+
+Toggles.TracerESPEnabled:AddColorPicker('TracerESPColor', {
+    Default = Color3.fromRGB(0,255,0),
+    Title = 'Tracer ESP Color'
+})
+
+Options.TracerESPColor:OnChanged(function()
+    getgenv().taffy_esp.tracer.color = Options.TracerESPColor.Value
+end)
+
+MainVisuals:AddToggle('UnlockedTracerEnabled', {
+    Text = 'Unlock Tracer',
+    Default = false, 
+    Tooltip = 'Unlock Tracer Enabled', 
+})
+
+Toggles.UnlockedTracerEnabled:OnChanged(function()
+    getgenv().taffy_esp.tracer.unlocktracers = Toggles.UnlockedTracerEnabled.Value
+end)
+
+MainVisuals:AddToggle('NameESPEnabled', {
+    Text = 'Name',
+    Default = false, 
+    Tooltip = 'Name ESP Enabled', 
+})
+
+Toggles.NameESPEnabled:OnChanged(function()
+    getgenv().taffy_esp.name.enabled = Toggles.NameESPEnabled.Value
+end)
+
+Toggles.NameESPEnabled:AddColorPicker('NameESPColor', {
+    Default = Color3.fromRGB(255,255,255),
+    Title = 'Name ESP Color'
+})
+
+Options.NameESPColor:OnChanged(function()
+    getgenv().taffy_esp.name.color = Options.NameESPColor.Value
+end)
+
+
+
+Library:SetWatermarkVisibility(false)
+
+-- Sets the watermark text
+Library:SetWatermark('LuckyHub | Hoopz | Premium User')
+
+Library.KeybindFrame.Visible = true; -- todo: add a function for this
+
+Library:OnUnload(function()
+    Library.Unloaded = true
+end)
+
+-- UI Settings
+local MenuGroup = Tabs['UI Settings']:AddLeftGroupbox('Menu')
+local OtherMenuGroup = Tabs['UI Settings']:AddRightGroupbox('UI Toggles')
+
+-- I set NoUI so it does not show up in the keybinds menu
+MenuGroup:AddButton('Unload', function() Library:Unload() end)
+MenuGroup:AddLabel('Menu bind'):AddKeyPicker('MenuKeybind', { Default = 'RightControl', NoUI = true, Text = 'Menu keybind' })
+
+OtherMenuGroup:AddToggle('KeybindVisibility', {
+    Text = 'Keybinds List Toggle',
+    Default = false, -- Default value (true / false)
+    Tooltip = 'Enables and disables keybinds visibility', -- Information shown when you hover over the toggle
+})
+
+OtherMenuGroup:AddToggle("Watermark", {
+	Text = "Show Watermark",
+	Default = true
+}):OnChanged(function()
+	Library:SetWatermarkVisibility(Toggles.Watermark.Value);
+end);
+
+Toggles.KeybindVisibility:OnChanged(function()
+    if Library.KeybindFrame.Visible == false
+    then Library.KeybindFrame.Visible = true
+        else
+            Library.KeybindFrame.Visible = false
+            end
+end)
+
+Library.ToggleKeybind = Options.MenuKeybind -- Allows you to have a custom keybind for the menu
+
+-- Addons:
+-- SaveManager (Allows you to have a configuration system)
+-- ThemeManager (Allows you to have a menu theme system)
+
+-- Hand the library over to our managers
+ThemeManager:SetLibrary(Library)
+SaveManager:SetLibrary(Library)
+
+-- Ignore keys that are used by ThemeManager. 
+-- (we dont want configs to save themes, do we?)
+SaveManager:IgnoreThemeSettings() 
+
+-- Adds our MenuKeybind to the ignore list 
+-- (do you want each config to have a different menu key? probably not.)
+SaveManager:SetIgnoreIndexes({ 'MenuKeybind' }) 
+
+-- use case for doing it this way: 
+-- a script hub could have themes in a global folder
+-- and game configs in a separate folder per game
+ThemeManager:SetFolder('LuckyHub')
+SaveManager:SetFolder('LuckyHub/Dahood')
+SaveManager:SetFolder('LuckyHub/Hoopz')
+SaveManager:SetFolder('LuckyHub/Da Hood Aim Trainer')
+
+-- Builds our config menu on the right side of our tab
+SaveManager:BuildConfigSection(Tabs['UI Settings']) 
+
+-- Builds our theme menu (with plenty of built in themes) on the left side
+-- NOTE: you can also call ThemeManager:ApplyToGroupbox to add it to a specific groupbox
+ThemeManager:ApplyToTab(Tabs['UI Settings'])
+
+-- You can use the SaveManager:LoadAutoloadConfig() to load a config 
+-- which has been marked to be one that auto loads!
+SaveManager:LoadAutoloadConfig()
+
+local reset = false
+ 
+pcall(function()
+    if _G.stepped then
+        reset = true
+        _G.stepped:Disconnect()
+        _G.input:Disconnect()
+        _G.charAdded:Disconnect()
+        _G.charAdded = nil
+        _G.stepped = nil
+        _G.input = nil
+        print("RESET")
+    end
+ 
+    if not reset then
+        print("LOADED")
+    end
+end)
+ 
+local plr = game.Players.LocalPlayer
+local uis = game:GetService("UserInputService")
+local rs = game:GetService("RunService")
+ 
+ 
+local shootingEvent = game:GetService("ReplicatedStorage").shootingEvent
+ 
+if workspace:FindFirstChild("PracticeArea") then
+    workspace.PracticeArea.Parent = workspace.Courts
+end
+ 
+local jumping = false
+ 
+for i,v in pairs(getconnections(game:GetService("UserInputService").TouchTapInWorld)) do
+    for z,x in pairs(getupvalues(v.Function)) do
+        if type(x) == "table" and rawget(x, 1) then
+            _G.method = x
+        elseif z == 10 then
+            _G.key = x
+        end
+    end
+end
+ 
+for i,v in pairs(getconnections(plr.Character.HumanoidRootPart:GetPropertyChangedSignal("Size"))) do
+    v:Disable()
+end
+ 
+for i,v in pairs(getconnections(plr.Character.HumanoidRootPart:GetPropertyChangedSignal("Color"))) do
+    v:Disable()
+end
+ 
+for i,v in pairs(getconnections(plr.Character.HumanoidRootPart:GetPropertyChangedSignal("BrickColor"))) do
+    v:Disable()
+end
+ 
+for i,v in pairs(getconnections(plr.Character.Humanoid:GetPropertyChangedSignal("WalkSpeed"))) do
+    v:Disable()
+end
+ 
+local ground
+ 
+local part = workspace:FindPartOnRay(Ray.new(plr.Character.Torso.Position, Vector3.new(0, -100, 5)))
+if part then
+    ground = part
+end
+ 
+local tracking = false
+local player
+ 
+function updateNearestPlayerWithBall()
+    local dist = 9e9
+    for i,v in pairs(game.Players:GetPlayers()) do
+        if v.Name ~= plr.Name and v.Character and v.Character:FindFirstChild("Basketball") and not plr.Character:FindFirstChild("Basketball") and (plr.Character.Torso.Position - v.Character.Torso.Position).Magnitude < 50 then
+            local mag = (plr.Character.Torso.Position - v.Character.Torso.Position).Magnitude
+            if dist > mag then
+                dist = mag
+                player = v
+            end
+        end
+    end
+end
+ 
+if _G.hook ~= nil then
+    _G.hook = ""; _G.hook = hookmetamethod(game, "__index", newcclosure(function(self, idx)
+        if tostring(self) == "HumanoidRootPart" and idx == "Size" then
+            return Vector3.new(2, 2, 1)
+        elseif tostring(self) == "HumanoidRootPart" and idx == "BrickColor" then
+            return BrickColor.new("Medium stone grey")
+        elseif tostring(self) == "HumanoidRootPart" and idx == "Color" then
+            return Color3.fromRGB(163, 162, 165)
+        elseif tostring(self) == "Humanoid" and idx == "WalkSpeed" then
+            return 16
+        end
+        return hook(self, idx)
+    end))
+end
+ 
+shootingEvent.OnClientEvent:Connect(function(newKey)
+    _G.key = newKey
+end)
+ 
+function setup()
+    local dist, goal = 9e9, nil
+    for i,v in pairs(workspace.Courts:GetDescendants()) do
+        if v.Name == "Swish" and v:IsA("Sound") and plr.Character and plr.Character:FindFirstChild("Torso") then
+            local mag = (plr.Character.Torso.Position - v.Parent.Position).Magnitude
+            if dist > mag then
+                dist = mag; goal = v.Parent
+            end
+        end
+    end
+    return dist, goal
+end
+ 
+function power()
+    return plr.Power
+end
+ 
+function changePower(goal)
+    power().Value = goal
+end
+ 
+function table(a, b)
+    local args = {
+X1 = a.X,
+Y1 = a.Y,
+Z1 = a.Z,
+X2 = b.X,
+Y2 = b.Y,
+Z2 = b.Z
+};
+ 
+return {args[_G.method[1]], args[_G.method[2]], args[_G.method[3]], args[_G.method[4]], args[_G.method[5]], args[_G.method[6]]}
+end
+ 
+function arc()
+    local dist, goal = setup()
+ 
+    dist = math.floor(dist)
+    print(dist)
+    if dist == 12 or dist == 13 then
+        return 15
+    elseif dist == 14 or dist == 15 then
+        return 20
+    elseif dist == 16 or dist == 17 then
+        return 15
+    elseif dist == 18 then
+        return 25
+    elseif dist == 19 then
+        return 20
+    elseif dist == 20 or dist == 21 then
+        return 20
+    elseif dist == 22 or dist == 23 then
+        return 25
+    elseif dist == 24 or dist == 25 then
+        return 20
+    elseif dist == 26 then
+        return 15
+    elseif dist == 27 or dist == 28 then
+        return 25
+    elseif dist == 29 or dist == 30 then
+        return 20
+    elseif dist == 31 then
+        return 15
+    elseif dist == 32 or dist == 33 then
+        return 30
+    elseif dist == 34 or dist == 35 or dist == 36 then
+        return 25
+    elseif dist == 37 or dist == 38 then
+        return 35
+    elseif dist == 39 or dist == 40 then
+        return 30
+    elseif dist == 41 then
+        return 25
+    elseif dist == 42 or dist == 43 then
+        return 40
+    elseif dist == 44 then
+        return 35
+    elseif dist == 45 or dist == 46 then
+        return 30
+    elseif dist == 47 or dist == 48 then
+        return 45
+    elseif dist == 49 then
+        return 40
+    elseif dist == 50 then
+        return 35
+    elseif dist == 51 then
+        return 50
+    elseif dist == 52 then
+        return 55
+    elseif dist == 53 or dist == 54 then
+        return 50
+    elseif dist == 55 then
+        return 45
+    elseif dist == 56 then
+        return 40
+    elseif dist == 57 or dist == 58 then
+        return 55
+    elseif dist == 59 or dist == 60 or dist == 61 then
+        return 50
+    elseif dist == 62 or dist == 63 then
+        return 65
+    elseif dist == 64 then
+        return 55
+    elseif dist == 65 then
+        return 60
+    elseif dist == 66 or dist == 67 then
+        return 50
+    elseif dist == 68 or dist == 69 then
+        return 75
+    elseif dist == 70 or dist == 71 then
+        return 70
+    elseif dist == 72 then
+        return 65
+    elseif dist == 73 then
+        return 60
+    elseif dist == 74 then
+        return 50
+    elseif jumping then
+        if dist == 9 or dist == 10 then
+            return 20
+        elseif dist == 11 or dist == 12 then
+            return 15
+        end
+    end
+end
+ 
+function getNearestPart(torso)
+    local dist, part = 9e9
+    for i,v in pairs(plr.Character:GetChildren()) do
+        if v:IsA("Part") and torso then
+            local mag = (v.Position - torso.Position).Magnitude
+            if dist > mag then
+                dist = mag
+                part = v
+            end
+        end
+    end
+    return part
+end
+ 
+function stepped() pcall(function()
+    if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") and _G.Aimbot then
+        local pwr = power()
+        local dist, goal = setup()
+        local root = plr.Character.HumanoidRootPart
+ 
+        dist = math.floor(dist)
+ 
+        if root and hasBall then
+            root.Size = Vector3.new(2.1, 2.1, 1.1)
+            root.BrickColor = BrickColor.new("Lime green")
+            root.Material = Enum.Material.Neon
+ 
+            if dist >= 13 and dist <= 16 then
+                changePower(30)
+                root.Transparency = 0
+            elseif dist >= 17 and dist <= 21 then
+                changePower(35)
+                root.Transparency = 0
+            elseif dist >= 22 and dist <= 26 then
+                changePower(40)
+                root.Transparency = 0
+            elseif dist >= 27 and dist <= 31 then
+                changePower(45)
+                root.Transparency = 0
+            elseif dist >= 32 and dist <= 36 then
+                changePower(50)
+                root.Transparency = 0
+            elseif dist >= 37 and dist <= 41 then
+                changePower(55)
+                root.Transparency = 0
+            elseif dist >= 42 and dist <= 46 then
+                changePower(60)
+                root.Transparency = 0
+            elseif dist >= 47 and dist <= 50 then
+                changePower(65)
+                root.Transparency = 0
+            elseif dist >= 51 and dist <= 56 then
+                changePower(70)
+                root.Transparency = 0
+            elseif dist >= 57 and dist <= 61 then
+                changePower(75)
+                root.Transparency = 0
+            elseif dist >= 62 and dist <= 67 then
+                changePower(80)
+                root.Transparency = 0
+            elseif dist >= 68 and dist <= 74 then
+                changePower(85)
+                root.Transparency = 0
+            elseif jumping and dist == 9 or dist == 10 or dist == 11 or dist == 12 then
+                changePower(25)
+                root.Transparency = 0
+            else
+                root.Transparency = 1
+            end
+        elseif root and not hasBall and _G.Aimbot then
+            root.Transparency = 1
+        elseif root and not _G.Aimbot then
+            root.Transparency = 1
+        end
+    end
+ 
+    updateNearestPlayerWithBall()
+ 
+ 
+    if _G.Autogaurd and tracking and player and plr.Character and plr.Character:FindFirstChild("Humanoid") and not plr.Character:FindFirstChild("Basketball") and player.Character and player.Character:FindFirstChild("Basketball") then
+        plr.Character.Humanoid:MoveTo(player.Character.Basketball:FindFirstChildOfClass("Part").Position + player.Character.Torso.CFrame.LookVector + ((player.Character.Humanoid.MoveDirection * 2) + (plr.Character.Torso.Velocity.Unit * 3)))
+ 
+        if (player.Character.Torso.Position.Y - ground.Position.Y) > 2.5 then
+            plr.Character.Humanoid.Jump = true
+        end
+    elseif tracking and player ~= nil and player.Character and plr.Character and plr.Character:FindFirstChild("Basketball") or not player.Character:FindFirstChild("Basketball") then
+        tracking = false
+        return
+    end
+ 
+    for i,v in pairs(game.Players:GetPlayers()) do
+        if (v.Name ~= plr.Name and v.Character and plr.Character) and _G.Reach then
+            local nearestPart = getNearestPart(v.Character.Torso)
+            for z,x in pairs(v.Character:GetChildren()) do
+                if ((nearestPart.Position - v.Character.Torso.Position).Magnitude < 8) then
+                    if (x:IsA("Tool") or x:IsA("Folder")) then
+                        firetouchinterest(nearestPart, x:FindFirstChildOfClass("Part"), 0)
+                        task.wait()
+                        firetouchinterest(nearestPart, x:FindFirstChildOfClass("Part"), 1)
+                    elseif (x:IsA("BasePart") and string.find(x.Name:lower(), "ball")) then
+                        firetouchinterest(nearestPart, x, 0)
+                        task.wait()
+                        firetouchinterest(nearestPart, x, 1)
+                    end
+                end
+            end
+        end
+    end
+end) end
+ 
+function shoot()
+    local dist, goal = setup()
+    local pwr = power()
+    local arc = arc()
+ 
+    if arc ~= nil and plr.Character and plr.Character:FindFirstChild("Humanoid") then
+        local args = table(plr.Character.Torso.Position, (goal.Position + Vector3.new(0, arc, 0) - plr.Character.HumanoidRootPart.Position + plr.Character.Humanoid.MoveDirection).Unit)
+ 
+        shootingEvent:FireServer(
+            plr.Character.Basketball,
+            pwr.Value,
+            args,
+            _G.key
+        )
+    end
+end
+ 
+function jumped()
+    if _G.Aimbot and plr.Character and hasBall and plr.Character:FindFirstChild("HumanoidRootPart") and plr.Character.HumanoidRootPart.Transparency == 0 then
+        jumping = true
+        task.wait(0.325)
+        shoot()
+        task.wait(0.1)
+        jumping = false
+    end
+end
+ 
+function added(v)
+    if v.Name == "Basketball" then
+        task.wait(0.5)
+        hasBall = true
+    end
+end
+ 
+function removed(v)
+    if v.Name == "Basketball" then
+        hasBall = false
+    end
+end
+ 
+
+if _G.Autoguard==true then
+    updateNearestPlayerWithBall()
+    if not tracking then 
+        tracking = true 
+    else 
+        tracking = false 
+    end 
+end
+
+
+ 
+_G.input = plr.Character.Humanoid.Jumping:Connect(jumped)
+_G.added = plr.Character.ChildAdded:Connect(added)
+_G.removed = plr.Character.ChildRemoved:Connect(removed)
+_G.stepped = rs.Stepped:Connect(stepped)
+_G.began = uis.InputBegan:Connect(began)
+ 
+_G.charAdded = plr.CharacterAdded:Connect(function(ch)
+    _G.input = ch:WaitForChild("Humanoid").Jumping:Connect(jumped)
+    _G.added = ch.ChildAdded:Connect(added)
+    _G.removed = ch.ChildRemoved:Connect(removed)
+ 
+    for i,v in pairs(getconnections(ch:WaitForChild("HumanoidRootPart"):GetPropertyChangedSignal("Size"))) do
+        v:Disable()
+    end
+    for i,v in pairs(getconnections(ch:WaitForChild("HumanoidRootPart"):GetPropertyChangedSignal("BrickColor"))) do
+        v:Disable()
+    end
+    for i,v in pairs(getconnections(ch:WaitForChild("HumanoidRootPart"):GetPropertyChangedSignal("Color"))) do
+        v:Disable()
+    end
+    for i,v in pairs(getconnections(ch:WaitForChild("Humanoid"):GetPropertyChangedSignal("WalkSpeed"))) do
+        v:Disable()
+    end
+end)
+
+
+
