@@ -1,0 +1,3 @@
+script_key = getgenv().LuckyHub.Preload.ScriptKey;
+--
+loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/b4f4e6017055666094b65956eb87f314.lua"))()
